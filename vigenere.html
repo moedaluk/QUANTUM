@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vigenère Cipher</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, textarea, button { margin: 5px 0; width: 100%; }
+  </style>
+</head>
+<body>
+
+<h2>Vigenère Cipher</h2>
+
+<label>Message:</label>
+<textarea id="message" rows="3"></textarea>
+
+<label>Key (Keyword):</label>
+<input type="text" id="key" placeholder="Enter keyword">
+
+<button onclick="encrypt()">Encrypt</button>
+<button onclick="decrypt()">Decrypt</button>
+
+<h3>Output:</h3>
+<textarea id="output" rows="3" readonly></textarea>
+
+<script>
+function vigenere(text, key, encrypt = true) {
+  let result = "";
+  key = key.toUpperCase();
+  let k = 0;
+
+  for (let ch of text) {
+    if (ch.match(/[a-z]/i)) {
+      let base = ch === ch.toUpperCase() ? 65 : 97;
+      let shift = key.charCodeAt(k % key.length) - 65;
+      if (!encrypt) shift = -shift;
+
+      result += String.fromCharCode(
+        (ch.charCodeAt(0) - base + shift + 26) % 26 + base
+      );
+      k++;
+    } else {
+      result += ch;
+    }
+  }
+  return result;
+}
+
+function encrypt() {
+  let msg = document.getElementById("message").value;
+  let key = document.getElementById("key").value;
+  document.getElementById("output").value = vigenere(msg, key, true);
+}
+
+function decrypt() {
+  let msg = document.getElementById("message").value;
+  let key = document.getElementById("key").value;
+  document.getElementById("output").value = vigenere(msg, key, false);
+}
+</script>
+
+</body>
+</html>

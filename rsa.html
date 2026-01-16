@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RSA Web Application</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+  </style>
+</head>
+<body>
+
+<h2>RSA Encryption & Decryption (Web Demo)</h2>
+
+<label>Prime number p:</label>
+<input id="p" value="61">
+
+<label>Prime number q:</label>
+<input id="q" value="53">
+
+<label>Numeric Message (m &lt; n):</label>
+<input id="message" value="42">
+
+<button onclick="runRSA()">Encrypt & Decrypt</button>
+
+<h3>Output</h3>
+<textarea id="output" rows="7" readonly></textarea>
+
+<script>
+/* ---------- Helper Functions ---------- */
+
+function gcd(a, b) {
+  while (b !== 0n) {
+    [a, b] = [b, a % b];
+  }
+  return a;
+}
+
+function modInverse(e, phi) {
+  let t = 0n, newT = 1n;
+  let r = phi, newR = e;
+
+  while (newR !== 0n) {
+    let q = r / newR;
+    [t, newT] = [newT, t - q * newT];
+    [r, newR] = [newR, r - q * newR];
+  }
+
+  if (t < 0n) t += phi;
+  return t;
+}
+
+function modPow(base, exp, mod) {
+  let result = 1n;
+  base = base % mod;
+
+  while (exp > 0n) {
+    if (exp % 2n === 1n)
+      result = (result * base) % mod;
+    exp = exp / 2n;
+    base = (base * base) % mod;
+  }
+  return result;
+}
+
+/* ---------- RSA Main ---------- */
+
+function runRSA() {
+  try {
+    let p = BigInt(document.getElementById("p").value);
+    let q = BigInt(document.getElementById("q").value);
+    let m = BigInt(document.getElementById("message").value);
+
+    let n = p * q;
+    let phi = (p - 1n) * (q - 1n);
+
+    let e = 2n;
+    while (gcd(e, phi) !== 1n) e++;
+
+    let d = modInverse(e, phi);
+
+    let c = modPow(m, e, n);
+    let decrypted = modPow(c, d, n);
+
+    document.getElementById("output").value =
+      "Public Key (e, n): (" + e + ", " + n + ")\n" +
+      "Private Key (d, n): (" + d + ", " + n + ")\n\n" +
+      "Encrypted Ciphertext: " + c + "\n" +
+      "Decrypted Plaintext: " + decrypted;
+
+  } catch (err) {
+    document.getElementById("output").value =
+      "Error: Please enter valid numeric inputs.";
+  }
+}
+</script>
+
+</body>
+</html>
