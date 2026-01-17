@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AES CBC Encryption Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 700px;
+    }
+    textarea, button {
+      width: 100%;
+      margin: 8px 0;
+    }
+    textarea {
+      height: 80px;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 5px;
+      display: block;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+
+<h2>AES Encryption & Decryption (CBC Mode)</h2>
+
+<label>Plaintext:</label>
+<textarea id="plaintext"></textarea>
+
+<button onclick="encrypt()">Encrypt</button>
+<button onclick="decrypt()">Decrypt</button>
+
+<h3>Key (hex)</h3>
+<code id="key"></code>
+
+<h3>IV (hex)</h3>
+<code id="iv"></code>
+
+<h3>Ciphertext (hex)</h3>
+<code id="ciphertext"></code>
+
+<h3>Decrypted Text</h3>
+<code id="decrypted"></code>
+
+<script>
+let aesKey, ivBytes, cipherBytes;
+
+/* Utility: convert ArrayBuffer to hex */
+function toHex(buffer) {
+  return [...new Uint8Array(buffer)]
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/* Utility: convert hex to ArrayBuffer */
+function fromHex(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+  }
+  return bytes.buffer;
+}
+
+/* Generate random AES key */
+async function generateKey() {
+  aesKey = await crypto.subtle.generateKey(
+    { name: "AES-CBC", length: 128 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+  const rawKey = await crypto.subtle.exportKey("raw", aesKey);
+  document.getElementById("key").textContent = toHex(rawKey);
+}
+
+/* Encrypt */
+async function encrypt() {
+  if (!aesKey) await generateKey();
+
+  const text = document.getElementById("plaintext").value;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+
+  ivBytes = crypto.getRandomValues(new Uint8Array(16));
+  cipherBytes = await crypto.subtle.encrypt(
+    { name: "AES-CBC", iv: ivBytes },
+    aesKey,
+    data
+  );
+
+  document.getElementById("iv").textContent = toHex(ivBytes);
+  document.getElementById("ciphertext").textContent = toHex(cipherBytes);
+}
+
+/* Decrypt */
+async function decrypt() {
+  if (!cipherBytes) return;
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-CBC", iv: ivBytes },
+    aesKey,
+    cipherBytes
+  );
+
+  const decoder = new TextDecoder();
+  document.getElementById("decrypted").textContent = decoder.decode(decrypted);
+}
+</script>
+
+</body>
+</html>

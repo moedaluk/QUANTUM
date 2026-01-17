@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DES Encryption Demo</title>
+
+  <!-- CryptoJS Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+    textarea, button {
+      width: 100%;
+      margin: 8px 0;
+    }
+    textarea {
+      height: 80px;
+    }
+    code {
+      display: block;
+      background: #f4f4f4;
+      padding: 6px;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+
+<h2>DES Encryption & Decryption (CBC Mode)</h2>
+
+<label>Plaintext:</label>
+<textarea id="plaintext"></textarea>
+
+<button onclick="encrypt()">Encrypt</button>
+<button onclick="decrypt()">Decrypt</button>
+
+<h3>Key (hex)</h3>
+<code id="key"></code>
+
+<h3>IV (hex)</h3>
+<code id="iv"></code>
+
+<h3>Ciphertext (Base64)</h3>
+<code id="ciphertext"></code>
+
+<h3>Decrypted Text</h3>
+<code id="decrypted"></code>
+
+<script>
+let key, iv, ciphertext;
+
+/* Generate random 8-byte DES key */
+function generateKey() {
+  key = CryptoJS.lib.WordArray.random(8);
+  document.getElementById("key").textContent = key.toString();
+}
+
+/* Encrypt */
+function encrypt() {
+  if (!key) generateKey();
+
+  iv = CryptoJS.lib.WordArray.random(8);
+  const plaintext = document.getElementById("plaintext").value;
+
+  const encrypted = CryptoJS.DES.encrypt(
+    plaintext,
+    key,
+    {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    }
+  );
+
+  ciphertext = encrypted.toString();
+  document.getElementById("iv").textContent = iv.toString();
+  document.getElementById("ciphertext").textContent = ciphertext;
+}
+
+/* Decrypt */
+function decrypt() {
+  if (!ciphertext) return;
+
+  const decrypted = CryptoJS.DES.decrypt(
+    ciphertext,
+    key,
+    {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    }
+  );
+
+  document.getElementById("decrypted").textContent =
+    decrypted.toString(CryptoJS.enc.Utf8);
+}
+</script>
+
+</body>
+</html>
